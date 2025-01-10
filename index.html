@@ -17,9 +17,6 @@
             border: 1px solid #000;
             position: relative;
         }
-        #canvas {
-            display: none; /* 캔버스 숨김 */
-        }
         .grid {
             position: absolute;
             width: 100%;
@@ -31,20 +28,17 @@
             height: 20%; /* 각각의 박스 높이 */
             border: 1px solid rgba(0, 0, 0, 0.5);
             position: absolute;
+            display: flex;
+            align-items: flex-end; /* 텍스트 아래 정렬 */
+            justify-content: center; /* 텍스트 가운데 정렬 */
+            color: #000;
+            font-size: 10px;
+            box-sizing: border-box;
         }
         #capturedImage {
             margin-top: 20px;
             max-width: 100%;
             display: none; /* 촬영 후 이미지 숨김 */
-        }
-        .color-value {
-            position: absolute;
-            bottom: -20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 12px;
-            color: #000;
         }
     </style>
 </head>
@@ -115,13 +109,7 @@
                     const b = data[pixelIndex + 2];
 
                     $(this).css('background-color', `rgb(${r}, ${g}, ${b})`);
-
-                    // 색상 값 표시
-                    const colorValue = $('<div>', {
-                        class: 'color-value',
-                        text: `(${r}, ${g}, ${b})`
-                    });
-                    $(this).append(colorValue);
+                    $(this).text(`(${r}, ${g}, ${b})`); // 색상 값 표시
                 });
 
                 // 촬영된 이미지 표시
