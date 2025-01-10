@@ -14,6 +14,7 @@
             display: none; /* 캔버스 숨김 */
         }
         .grid {
+            position: absolute;
             display: flex;
             flex-wrap: wrap;
             width: 300px; /* 그리드 너비 */
@@ -57,7 +58,7 @@
         const capturedImage = document.getElementById('capturedImage');
 
         // 카메라 스트림 요청
-        navigator.mediaDevices.getUserMedia({ video: true  })
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(stream => {
                 video.srcObject = stream;
                 video.play();
@@ -65,6 +66,25 @@
             .catch(err => {
                 console.error("카메라 접근 오류: " + err);
             });
+
+        // 그리드 생성 함수
+        function createGrid() {
+            grid.innerHTML = '';
+            const gridSize = 5; // 5x5 그리드
+            const boxSize = 300 / gridSize; // 그리드 박스 크기
+
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const colorBox = document.createElement('div');
+                    colorBox.className = 'color-box';
+                    colorBox.style.position = 'relative';
+                    colorBox.style.left = `${x * boxSize}px`;
+                    colorBox.style.top = `${y * boxSize}px`;
+                    colorBox.innerText = `(${x}, ${y})`; // 위치 표시
+                    grid.appendChild(colorBox);
+                }
+            }
+        }
 
         // 사진 촬영 버튼 클릭 시 RGB 값 추출
         document.getElementById('capture').addEventListener('click', () => {
@@ -77,7 +97,7 @@
             const gridSize = 5; // 5x5 그리드
             const boxSize = canvas.width / gridSize;
 
-            // 그리드 생성
+            // 그리드 생성 및 색상 값 표시
             grid.innerHTML = '';
             for (let y = 0; y < gridSize; y++) {
                 for (let x = 0; x < gridSize; x++) {
@@ -104,6 +124,9 @@
             capturedImage.src = canvas.toDataURL();
             capturedImage.style.display = 'block';
         });
+
+        // 초기 그리드 생성
+        createGrid();
     </script>
 </body>
 </html>
