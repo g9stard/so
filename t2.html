@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>화이트 밸런스 조정 및 색온도 표시</title>
+    <title>표시</title>
     <style>
         body {
             display: flex;
@@ -79,7 +79,7 @@
             const data = frame.data;
 
             // 화이트 밸런스 조정 (흰색 기준)
-            const whitePoint = { r: 255, g: 255, b: 255 }; // 기준 화이트 색상
+            const whitePoint = { r: 200, g: 200, b: 200 }; // 기준 화이트 색상
             let totalR = 0, totalG = 0, totalB = 0, count = 0;
 
             for (let i = 0; i < data.length; i += 4) {
