@@ -3,19 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>후면 카메라 RGB 추출</title>
+    <title>후면 카메라 RGB 그리드 색상 추출</title>
+    <style>
+        #video {
+            display: none; /* 비디오 요소 숨김 */
+        }
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            width: 300px; /* 그리드 너비 */
+        }
+        .color-box {
+            width: 30px; /* 각각의 박스 너비 */
+            height: 30px; /* 각각의 박스 높이 */
+            border: 1px solid #000;
+            position: relative;
+            margin: 1px;
+        }
+        .color-value {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            color: #000;
+        }
+    </style>
 </head>
 <body>
     <video id="video" autoplay></video>
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas" style="display:none;"></canvas>
     <button id="capture">캡처</button>
-    <div id="rgb"></div>
+    <div class="grid" id="grid"></div>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
-        const rgbDisplay = document.getElementById('rgb');
+        const grid = document.getElementById('grid');
 
         // 카메라 스트림 요청
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -26,19 +52,38 @@
                 console.error("카메라 접근 오류: " + err);
             });
 
-        // 캡처 버튼 클릭 시 RGB 추출
+        // 캡처 버튼 클릭 시 RGB 그리드 추출
         document.getElementById('capture').addEventListener('click', () => {
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             const frame = context.getImageData(0, 0, canvas.width, canvas.height);
             const data = frame.data;
 
-            // 예시: 중앙 픽셀의 RGB 값 추출
-            const pixelIndex = (canvas.width / 2 + canvas.height / 2 * canvas.width) * 4;
-            const r = data[pixelIndex];
-            const g = data[pixelIndex + 1];
-            const b = data[pixelIndex + 2];
+            // 그리드 크기
+            const gridSize = 5; // 5x5 그리드
+            const boxSize = canvas.width / gridSize;
 
-            rgbDisplay.innerText = `R: ${r}, G: ${g}, B: ${b}`;
+            // 그리드 생성
+            grid.innerHTML = '';
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const pixelIndex = ((y * boxSize + boxSize / 2) * canvas.width + (x * boxSize + boxSize / 2)) * 4;
+                    const r = data[pixelIndex];
+                    const g = data[pixelIndex + 1];
+                    const b = data[pixelIndex + 2];
+
+                    const colorBox = document.createElement('div');
+                    colorBox.className = 'color-box';
+                    colorBox.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+
+                    // 색상 값 표시
+                    const colorValue = document.createElement('div');
+                    colorValue.className = 'color-value';
+                    colorValue.innerText = `(${r}, ${g}, ${b})`;
+
+                    colorBox.appendChild(colorValue);
+                    grid.appendChild(colorBox);
+                }
+            }
         });
     </script>
 </body>
