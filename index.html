@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>후면 카메라 RGB 값 추출</title>
+    <title>후면 카메라 RGB 그리드 색상 추출</title>
     <style>
         #video {
             width: 100%; /* 비디오 요소 너비 */
             max-width: 600px; /* 최대 너비 */
             border: 1px solid #000;
-            display: none; /* 비디오 요소 숨김 */
         }
         #canvas {
             display: none; /* 캔버스 숨김 */
@@ -36,6 +35,11 @@
             font-size: 12px;
             color: #000;
         }
+        #capturedImage {
+            margin-top: 20px;
+            max-width: 100%;
+            display: none; /* 촬영 후 이미지 숨김 */
+        }
     </style>
 </head>
 <body>
@@ -43,12 +47,14 @@
     <canvas id="canvas"></canvas>
     <button id="capture">사진 촬영</button>
     <div class="grid" id="grid"></div>
+    <img id="capturedImage" alt="Captured Image"/>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
         const grid = document.getElementById('grid');
+        const capturedImage = document.getElementById('capturedImage');
 
         // 카메라 스트림 요청
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -93,6 +99,10 @@
                     grid.appendChild(colorBox);
                 }
             }
+
+            // 촬영된 이미지 표시
+            capturedImage.src = canvas.toDataURL();
+            capturedImage.style.display = 'block';
         });
     </script>
 </body>
