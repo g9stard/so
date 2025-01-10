@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>후면 카메라 RGB 그리드 추출</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             display: flex;
@@ -54,78 +55,82 @@
     <img id="capturedImage" alt="Captured Image"/>
 
     <script>
-        const video = document.getElementById('video');
-        const grid = document.getElementById('grid');
-        const capturedImage = document.getElementById('capturedImage');
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
+        $(document).ready(function() {
+            const video = $('#video')[0];
+            const grid = $('#grid');
+            const capturedImage = $('#capturedImage');
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
 
-        // 카메라 스트림 요청
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(stream => {
-                video.srcObject = stream;
-                video.play();
-            })
-            .catch(err => {
-                console.error("카메라 접근 오류: " + err);
-            });
+            // 카메라 스트림 요청
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => {
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch(err => {
+                    console.error("카메라 접근 오류: " + err);
+                });
 
-        // 그리드 생성 함수
-        function createGrid() {
-            const gridSize = 5; // 5x5 그리드
-            const boxSize = 100 / gridSize; // 그리드 박스 크기 (%)
+            // 그리드 생성 함수
+            function createGrid() {
+                const gridSize = 5; // 5x5 그리드
+                const boxSize = 100 / gridSize; // 그리드 박스 크기 (%)
 
-            for (let y = 0; y < gridSize; y++) {
-                for (let x = 0; x < gridSize; x++) {
-                    const colorBox = document.createElement('div');
-                    colorBox.className = 'color-box';
-                    colorBox.style.left = `${x * boxSize}%`;
-                    colorBox.style.top = `${y * boxSize}%`;
-                    grid.appendChild(colorBox);
+                for (let y = 0; y < gridSize; y++) {
+                    for (let x = 0; x < gridSize; x++) {
+                        const colorBox = $('<div>', {
+                            class: 'color-box',
+                            css: {
+                                left: `${x * boxSize}%`,
+                                top: `${y * boxSize}%`
+                            }
+                        });
+                        grid.append(colorBox);
+                    }
                 }
             }
-        }
 
-        // 사진 촬영 버튼 클릭 시 RGB 값 추출
-        document.getElementById('capture').addEventListener('click', () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            // 사진 촬영 버튼 클릭 시 RGB 값 추출
+            $('#capture').on('click', function() {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
 
-            // 비디오 프레임을 캔버스에 그리기
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const frame = context.getImageData(0, 0, canvas.width, canvas.height);
-            const data = frame.data;
+                // 비디오 프레임을 캔버스에 그리기
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const frame = context.getImageData(0, 0, canvas.width, canvas.height);
+                const data = frame.data;
 
-            // 그리드 크기
-            const gridSize = 5; // 5x5 그리드
-            const boxSize = canvas.width / gridSize;
-
-            // 그리드 색상 값 표시
-            const colorBoxes = document.querySelectorAll('.color-box');
-            colorBoxes.forEach((box, index) => {
-                const y = Math.floor(index / gridSize);
-                const x = index % gridSize;
-                const pixelIndex = ((y * boxSize + boxSize / 2) * canvas.width + (x * boxSize + boxSize / 2)) * 4;
-                const r = data[pixelIndex];
-                const g = data[pixelIndex + 1];
-                const b = data[pixelIndex + 2];
-
-                box.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+                // 그리드 크기
+                const gridSize = 5; // 5x5 그리드
+                const boxSize = canvas.width / gridSize;
 
                 // 색상 값 표시
-                const colorValue = document.createElement('div');
-                colorValue.className = 'color-value';
-                colorValue.innerText = `(${r}, ${g}, ${b})`;
-                box.appendChild(colorValue);
+                $('.color-box').each(function(index) {
+                    const y = Math.floor(index / gridSize);
+                    const x = index % gridSize;
+                    const pixelIndex = ((y * boxSize + boxSize / 2) * canvas.width + (x * boxSize + boxSize / 2)) * 4;
+                    const r = data[pixelIndex];
+                    const g = data[pixelIndex + 1];
+                    const b = data[pixelIndex + 2];
+
+                    $(this).css('background-color', `rgb(${r}, ${g}, ${b})`);
+
+                    // 색상 값 표시
+                    const colorValue = $('<div>', {
+                        class: 'color-value',
+                        text: `(${r}, ${g}, ${b})`
+                    });
+                    $(this).append(colorValue);
+                });
+
+                // 촬영된 이미지 표시
+                capturedImage.attr('src', canvas.toDataURL()).show();
             });
 
-            // 촬영된 이미지 표시
-            capturedImage.src = canvas.toDataURL();
-            capturedImage.style.display = 'block';
+            // 초기 그리드 생성
+            createGrid();
         });
-
-        // 초기 그리드 생성
-        createGrid();
     </script>
 </body>
 </html>
