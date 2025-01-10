@@ -57,7 +57,7 @@
         const capturedImage = document.getElementById('capturedImage');
 
         // 카메라 스트림 요청
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        navigator.mediaDevices.getUserMedia({ video: true  })
             .then(stream => {
                 video.srcObject = stream;
                 video.play();
