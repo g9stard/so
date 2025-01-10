@@ -6,12 +6,15 @@
     <title>후면 카메라 RGB 실시간 추출</title>
     <style>
         #video {
-            display: none; /* 비디오 요소 숨김 */
+            width: 100%; /* 비디오 요소 너비 */
+            max-width: 600px; /* 최대 너비 */
+            border: 1px solid #000;
         }
         .grid {
             display: flex;
             flex-wrap: wrap;
             width: 300px; /* 그리드 너비 */
+            margin-top: 20px;
         }
         .color-box {
             width: 30px; /* 각각의 박스 너비 */
@@ -47,7 +50,11 @@
             .then(stream => {
                 video.srcObject = stream;
                 video.play();
-                updateGrid();
+                video.addEventListener('loadedmetadata', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    updateGrid(); // 그리드 업데이트 시작
+                });
             })
             .catch(err => {
                 console.error("카메라 접근 오류: " + err);
@@ -89,12 +96,6 @@
             // 100ms마다 업데이트
             requestAnimationFrame(updateGrid);
         }
-
-        // 캔버스 크기 설정
-        video.addEventListener('loadedmetadata', () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-        });
     </script>
 </body>
 </html>
