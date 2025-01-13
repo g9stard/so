@@ -16,15 +16,15 @@
             margin-top: 5px; /* 상자와 텍스트 간격 조정 */
         }
         .color-box {
-            width: 20px;
-            height: 20px;
+            width: 10px; /* 색상 박스 크기 */
+            height: 10px; /* 색상 박스 크기 */
             display: inline-block;
-            margin-right: 5px;
+            margin-top: 5px; /* 색상 박스와 텍스트 간격 조정 */
         }
     </style>
 </head>
 <body>
-    <video id="video" width="320" height="240" controls muted autoplay loop playsinline></video>
+    <video id="video" width="320" height="240" autoplay></video>
     <button id="capture">촬영하기</button>
     <canvas id="canvas" width="320" height="240"></canvas>
 
@@ -68,12 +68,12 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
                 const rgbContainer = document.createElement('div');
                 rgbContainer.className = 'rgb-value';
                 rgbContainer.style.left = `${pos.x}px`;
-                rgbContainer.style.top = `${pos.y + 40}px`; // 정사각형 하단에 위치
+                rgbContainer.style.top = `${pos.y + 35}px`; // 정사각형 하단에 위치
 
                 // 색상 상자와 RGB 값 텍스트 추가
                 rgbContainer.innerHTML = `
+                    RGB(${r}, ${g}, ${b})<br>
                     <div class="color-box" style="background: rgb(${r}, ${g}, ${b});"></div>
-                    RGB(${r}, ${g}, ${b})
                 `;
                 document.body.appendChild(rgbContainer);
             });
