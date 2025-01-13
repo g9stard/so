@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>검은색 테두리 안쪽 색상 추출기</title>
+    <title>111검은색 테두리 안쪽 색상 추출기</title>
     <style>
         #canvas {
             display: block;
@@ -37,9 +37,7 @@
         const colorsDiv = document.getElementById('colors');
 
         // 후면 카메라 접근
-        navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { exact: "environment" } }
-        })
+         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
         .then(stream => {
             video.srcObject = stream;
             video.play();
