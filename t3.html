@@ -17,8 +17,11 @@
         }
         .rgb-value {
             position: absolute;
-            color: white;
+            color: red;
             font-weight: bold;
+            background: rgba(255, 255, 255, 0.7); /* 배경을 흰색으로 설정하여 가독성 향상 */
+            padding: 2px;
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -34,13 +37,12 @@
         const captureButton = document.getElementById('capture');
 
         // 카메라 스트림 시작
-       navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
+        navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
-                video.play();
             })
             .catch(err => {
-                console.error("카메라 접근 오류: " + err);
+                console.error("카메라 접근 오류:", err);
             });
 
         captureButton.addEventListener('click', () => {
@@ -49,7 +51,7 @@
             // 정사각형 위치 설정
             const positions = [
                 { x: 50, y: 50 },
-                { x: 50 + 35, y: 50 } // 두 번째 정사각형
+                { x: 85, y: 50 } // 두 번째 정사각형
             ];
 
             positions.forEach(pos => {
@@ -65,7 +67,7 @@
                 const rgbText = document.createElement('div');
                 rgbText.className = 'rgb-value';
                 rgbText.style.left = `${pos.x}px`;
-                rgbText.style.top = `${pos.y}px`;
+                rgbText.style.top = `${pos.y + 35}px`; // 정사각형 아래에 위치
                 rgbText.innerText = `RGB(${r}, ${g}, ${b})`;
                 document.body.appendChild(rgbText);
             });
