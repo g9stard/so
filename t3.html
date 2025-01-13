@@ -3,17 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>카메라 촬영 및 RGB 표시</title>
+    <title>표시</title>
     <style>
         #canvas {
             position: relative;
             border: 1px solid black;
-        }
-        .square {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            border: 2px solid red;
         }
         .rgb-value {
             position: absolute;
@@ -37,7 +31,7 @@
         const captureButton = document.getElementById('capture');
 
         // 카메라 스트림 시작
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
+navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
             .then(stream => {
                 video.srcObject = stream;
                 video.play();
@@ -47,6 +41,7 @@
             });
 
         captureButton.addEventListener('click', () => {
+            // 비디오에서 캡처
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             // 정사각형 위치 설정
@@ -58,6 +53,7 @@
             positions.forEach(pos => {
                 // 정사각형 그리기
                 context.strokeStyle = 'red';
+                context.lineWidth = 2;
                 context.strokeRect(pos.x, pos.y, 30, 30);
 
                 // RGB 값 표시
@@ -68,7 +64,7 @@
                 const rgbText = document.createElement('div');
                 rgbText.className = 'rgb-value';
                 rgbText.style.left = `${pos.x}px`;
-                rgbText.style.top = `${pos.y + 35}px`; // 정사각형 아래에 위치
+                rgbText.style.top = `${pos.y + 35}px`; // 정사각형 하단에 위치
                 rgbText.innerText = `RGB(${r}, ${g}, ${b})`;
                 document.body.appendChild(rgbText);
             });
