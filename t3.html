@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>22111111111기</title>
+    <title>크 기법</title>
     <style>
         body {
             display: flex;
@@ -69,41 +69,49 @@
             function extractColors() {
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const data = imageData.data;
-                const borderColors = [];
+                const maskSize = 20; // 마스크 크기
+                const masks = [
+                    { x: 50, y: 50 }, // 첫 번째 마스크 위치
+                    { x: 100, y: 100 } // 두 번째 마스크 위치
+                ];
+                const extractedColors = [];
 
-                // 검은색 테두리 탐지 및 안쪽 색상 추출
-                for (let y = 0; y < canvas.height; y++) {
-                    for (let x = 0; x < canvas.width; x++) {
-                        const index = (y * canvas.width + x) * 4;
-                        const r = data[index];
-                        const g = data[index + 1];
-                        const b = data[index + 2];
-
-                        // 검은색 픽셀 조건
-                        if (r < 50 && g < 50 && b < 50) {
-                            // 검은색 테두리 안쪽 색상 추출
-                            const insideColor = getInsideColor(data, x, y, canvas.width);
-                            if (insideColor) {
-                                borderColors.push(insideColor);
-                            }
-                        }
+                masks.forEach(mask => {
+                    const maskColor = getAverageColor(data, mask.x, mask.y, maskSize);
+                    if (maskColor) {
+                        extractedColors.push(maskColor);
                     }
-                }
+                });
+
                 // 색상 박스와 RGB 값 표시
-                displayColors(borderColors);
+                displayColors(extractedColors);
             }
 
-            // 검은색 테두리 안쪽 색상 추출
-            function getInsideColor(data, x, y, width) {
-                const insideColor = `rgb(${data[((y * width + x) * 4)]}, ${data[((y * width + x) * 4) + 1]}, ${data[((y * width + x) * 4) + 2]})`;
-                return insideColor;
+            // 특정 영역의 평균 색상 추출
+            function getAverageColor(data, startX, startY, size) {
+                let r = 0, g = 0, b = 0, count = 0;
+
+                for (let y = startY; y < startY + size; y++) {
+                    for (let x = startX; x < startX + size; x++) {
+                        const index = (y * canvas.width + x) * 4;
+                        r += data[index];
+                        g += data[index + 1];
+                        b += data[index + 2];
+                        count++;
+                    }
+                }
+
+                // 평균 색상 계산
+                r = Math.floor(r / count);
+                g = Math.floor(g / count);
+                b = Math.floor(b / count);
+                return `rgb(${r}, ${g}, ${b})`;
             }
 
             // 색상 표시 함수
             function displayColors(colors) {
                 colorsDiv.innerHTML = ''; // 기존 색상 초기화
-                const uniqueColors = [...new Set(colors)]; // 중복 색상 제거
-                uniqueColors.forEach(color => {
+                colors.forEach(color => {
                     const colorBox = document.createElement('div');
                     colorBox.className = 'color-box';
                     colorBox.style.backgroundColor = color;
