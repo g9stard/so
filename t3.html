@@ -62,8 +62,8 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
 
                 // RGB 값 텍스트 표시
                 context.fillStyle = 'red';
-                context.font = '12px Arial';
-                context.fillText(`RGB(${r}, ${g}, ${b})`, pos.x, pos.y + 45); // 정사각형 하단에 위치
+                context.font = '10px Arial';
+                context.fillText(`RGB(${r}, ${g}, ${b})`, pos.x+10, pos.y + 50); // 정사각형 하단에 위치
             });
         });
     </script>
