@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>출 및 표시</title>
+    <title>색상 추출 및 표시</title>
     <style>
         canvas {
             display: block;
@@ -11,9 +11,9 @@
         }
         .color-label {
             position: absolute;
-            color: black;
+            color: white; /* 텍스트 색상 */
             font-size: 12px;
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
             border: 1px solid #ccc;
             padding: 2px;
             border-radius: 3px;
@@ -31,6 +31,7 @@
         const context = canvas.getContext('2d');
         const captureButton = $('#capture');
 
+        // 후면 카메라 접근
 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
             .then(stream => {
                 video.srcObject = stream;
@@ -66,7 +67,7 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
 
                     // RGB 값과 색상 표시
                     const colorLabel = `RGB(${avgColor.r}, ${avgColor.g}, ${avgColor.b})`;
-                    createColorLabel(colorLabel, x, y);
+                    createColorLabel(colorLabel, x + 5, y + 20, avgColor); // 위치 조정
                 }
             }
         }
@@ -88,12 +89,14 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
             };
         }
 
-        function createColorLabel(color, x, y) {
-            const label = $('<div class="color-label"></div>').text(color);
-            label.css({
-                left: x + 'px',
-                top: (y - 20) + 'px' // 마스크 위쪽에 위치
-            });
+        function createColorLabel(color, x, y, avgColor) {
+            const label = $('<div class="color-label"></div>')
+                .text(color)
+                .css({
+                    left: x + 'px',
+                    top: y + 'px',
+                    background: `rgba(${avgColor.r}, ${avgColor.g}, ${avgColor.b}, 0.7)` // 평균 색상 배경
+                });
             $('body').append(label);
         }
     </script>
