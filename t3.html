@@ -3,137 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>검은색 테두리 색상 추출기</title>
+    <title>검은색 테두리 추적기</title>
+    <script src="https://docs.opencv.org/4.x/opencv.js" async></script>
     <style>
         #canvas {
-            display: none;
+            display: block;
         }
-        .color-box {
-            width: 30px;
-            height: 30px;
-            display: inline-block;
-            margin: 2px;
-            border: 1px solid #000;
-        }
-        #colors {
-            display: flex;
-            flex-wrap: wrap;
-            width: 200px; /* 가로 너비 조정 */
-        }
-        #image-container {
-            position: relative;
-        }
-        #captured-image {
-            max-width: 100%;
-        }
-        .guide-box {
-            position: absolute;
-            border: 2px dashed red;
+        video {
+            display: none; /* 비디오 요소 숨김 */
         }
     </style>
 </head>
 <body>
     <video id="video" controls muted autoplay loop playsinline></video>
-    <button id="capture">사진 촬영</button>
     <canvas id="canvas"></canvas>
-    <div id="image-container">
-        <img id="captured-image" src="" alt="Captured Image" style="display:none;">
-        <div id="guides"></div>
-    </div>
-    <div id="colors"></div>
 
     <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const context = canvas.getContext('2d');
-        const colorsDiv = document.getElementById('colors');
-        const guidesDiv = document.getElementById('guides');
-        const capturedImage = document.getElementById('captured-image');
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
 
         // 카메라 접근
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
+                video.play();
+                detectBlackBorders();
             })
             .catch(err => {
                 console.error("카메라 접근 오류:", err);
             });
 
-        // 검은색 테두리의 위치 및 크기
-        const boxSize = 30; // 박스 크기
-        const boxesPerRow = 6; // 가로 박스 개수
-        const boxesPerColumn = 5; // 세로 박스 개수
-        const boxPositions = [];
-
-        // 박스 위치 생성
-        for (let row = 0; row < boxesPerColumn; row++) {
-            for (let col = 0; col < boxesPerRow; col++) {
-                boxPositions.push({
-                    x: col * (boxSize + 2), // 박스 간격 포함
-                    y: row * (boxSize + 2)
-                });
-            }
-        }
-
-        // 가이드 박스 표시
-        function drawGuides() {
-            guidesDiv.innerHTML = '';
-            boxPositions.forEach(pos => {
-                const guideBox = document.createElement('div');
-                guideBox.className = 'guide-box';
-                guideBox.style.left = `${pos.x}px`;
-                guideBox.style.top = `${pos.y}px`;
-                guideBox.style.width = `${boxSize}px`;
-                guideBox.style.height = `${boxSize}px`;
-                guidesDiv.appendChild(guideBox);
-            });
-        }
-
-        // 사진 촬영 버튼 클릭 이벤트
-        document.getElementById('capture').addEventListener('click', () => {
+        function detectBlackBorders() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            capturedImage.src = canvas.toDataURL();
-            capturedImage.style.display = 'block';
-            extractColors();
-        });
 
-        // 색상 추출 함수
-        function extractColors() {
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            const colors = [];
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            let src = cv.imread(canvas);
+            let dst = new cv.Mat();
+            let gray = new cv.Mat();
+            let edges = new cv.Mat();
 
-            // 각 박스의 안쪽 색상 추출
-            boxPositions.forEach(pos => {
-                const index = ((pos.y + 1) * canvas.width + (pos.x + 1)) * 4; // 박스 안쪽 픽셀
-                const r = data[index];
-                const g = data[index + 1];
-                const b = data[index + 2];
-                colors.push(`rgb(${r}, ${g}, ${b})`);
-            });
+            // 그레이스케일로 변환
+            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+            // 엣지 검출
+            cv.Canny(gray, edges, 50, 100);
 
-            displayColors(colors);
+            // 윤곽선 찾기
+            let contours = new cv.MatVector();
+            let hierarchy = new cv.Mat();
+            cv.findContours(edges, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+
+            // 검은색 테두리 탐지 및 표시
+            for (let i = 0; i < contours.size(); i++) {
+                let contour = contours.get(i);
+                let color = new cv.Scalar(255, 0, 0, 255); // 빨간색
+                cv.drawContours(src, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
+
+                // 면적이 작은 윤곽선은 무시
+                if (cv.contourArea(contour) < 1000) continue;
+
+                // 사각형의 경계 상자 가져오기
+                let rect = cv.boundingRect(contour);
+                cv.rectangle(src, rect, color, 2);
+            }
+
+            // 결과 표시
+            cv.imshow(canvas, src);
+            // 메모리 해제
+            src.delete(); gray.delete(); edges.delete(); dst.delete(); hierarchy.delete(); contours.delete();
+            
+            requestAnimationFrame(detectBlackBorders); // 계속해서 추적
         }
-
-        // 색상 표시 함수
-        function displayColors(colors) {
-            colorsDiv.innerHTML = '';
-            colors.forEach(color => {
-                const colorBox = document.createElement('div');
-                colorBox.className = 'color-box';
-                colorBox.style.backgroundColor = color;
-                colorsDiv.appendChild(colorBox);
-                
-                const rgbValue = document.createElement('div');
-                rgbValue.textContent = color; // RGB 값 표시
-                colorsDiv.appendChild(rgbValue);
-            });
-        }
-
-        // 초기 가이드 박스 그리기
-        drawGuides();
     </script>
 </body>
 </html>
