@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>검은색 테두리 추적기</title>
-    <script src="https://docs.opencv.org/4.x/opencv.js" async></script>
     <style>
         #canvas {
             display: block;
@@ -39,40 +38,29 @@
             canvas.height = video.videoHeight;
 
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            let src = cv.imread(canvas);
-            let dst = new cv.Mat();
-            let gray = new cv.Mat();
-            let edges = new cv.Mat();
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = imageData.data;
 
-            // 그레이스케일로 변환
-            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-            // 엣지 검출
-            cv.Canny(gray, edges, 50, 100);
+            // 검은색 테두리 탐지
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    let index = (y * canvas.width + x) * 4;
+                    let r = data[index];
+                    let g = data[index + 1];
+                    let b = data[index + 2];
 
-            // 윤곽선 찾기
-            let contours = new cv.MatVector();
-            let hierarchy = new cv.Mat();
-            cv.findContours(edges, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
-
-            // 검은색 테두리 탐지 및 표시
-            for (let i = 0; i < contours.size(); i++) {
-                let contour = contours.get(i);
-                let color = new cv.Scalar(255, 0, 0, 255); // 빨간색
-                cv.drawContours(src, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
-
-                // 면적이 작은 윤곽선은 무시
-                if (cv.contourArea(contour) < 1000) continue;
-
-                // 사각형의 경계 상자 가져오기
-                let rect = cv.boundingRect(contour);
-                cv.rectangle(src, rect, color, 2);
+                    // 검은색 테두리 조건
+                    if (r < 50 && g < 50 && b < 50) {
+                        // 검은색 픽셀을 빨간색으로 변경
+                        data[index] = 255; // R
+                        data[index + 1] = 0; // G
+                        data[index + 2] = 0; // B
+                    }
+                }
             }
 
-            // 결과 표시
-            cv.imshow(canvas, src);
-            // 메모리 해제
-            src.delete(); gray.delete(); edges.delete(); dst.delete(); hierarchy.delete(); contours.delete();
-            
+            // 수정된 픽셀 데이터를 캔버스에 다시 그리기
+            ctx.putImageData(imageData, 0, 0);
             requestAnimationFrame(detectBlackBorders); // 계속해서 추적
         }
     </script>
