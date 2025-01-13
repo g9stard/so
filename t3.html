@@ -18,7 +18,7 @@
         #colors {
             display: flex;
             flex-wrap: wrap;
-            width: 160px; /* 가로 너비 조정 */
+            width: 128px; /* 가로 너비 조정 (4칸) */
         }
         #image-container {
             position: relative;
@@ -61,11 +61,20 @@
                 console.error("카메라 접근 오류:", err);
             });
 
-        // 30x30px 박스의 위치 생성
-        const boxPositions = Array.from({ length: 20 }, () => ({
-            x: Math.floor(Math.random() * (640 - 30)), // 비디오 최대 폭에 맞춤
-            y: Math.floor(Math.random() * (480 - 30))  // 비디오 최대 높이에 맞춤
-        }));
+        // 30px 정사각형 박스의 위치 생성
+        const boxPositions = [];
+        const boxSize = 30;
+        const columns = 4;
+        const rows = 5;
+
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < columns; col++) {
+                boxPositions.push({
+                    x: col * (boxSize + 2), // 박스 크기와 간격
+                    y: row * (boxSize + 2)
+                });
+            }
+        }
 
         // 가이드 박스 표시
         function drawGuides() {
