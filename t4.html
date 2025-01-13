@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>후면 카메라 이미지 처리</title>
+    <style>
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+    <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
+  
+</head>
+<body>
+    <video id="video" autoplay></video>
+    <button id="capture">촬영</button>
+    <canvas id="canvas"></canvas>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const captureButton = document.getElementById('capture');
+
+        // 후면 카메라 접근
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+                video.srcObject = stream;
+            });
+
+        captureButton.addEventListener('click', () => {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            processImage();
+        });
+
+        function processImage() {
+            const src = cv.imread(canvas);
+            const dst = new cv.Mat();
+
+            // 이미지 그레이스케일 변환
+            cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY);
+
+            // 이진화 (검은색 테두리 찾기)
+            cv.threshold(src, dst, 50, 255, cv.THRESH_BINARY_INV);
+
+            // 외곽선 찾기
+            const contours = new cv.MatVector();
+            const hierarchy = new cv.Mat();
+            cv.findContours(dst, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+
+            // 외곽선 그리기 및 색상 추출
+            for (let i = 0; i < contours.size(); i++) {
+                const color = extractAverageColor(src, contours.get(i));
+                const boundingRect = cv.boundingRect(contours.get(i));
+                context.strokeStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+                context.strokeRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
+            }
+
+            // 메모리 해제
+            src.delete();
+            dst.delete();
+            contours.delete();
+            hierarchy.delete();
+        }
+
+        function extractAverageColor(src, contour) {
+            let sumR = 0, sumG = 0, sumB = 0, count = 0;
+
+            const boundingRect = cv.boundingRect(contour);
+            for (let y = boundingRect.y; y < boundingRect.y + boundingRect.height; y++) {
+                for (let x = boundingRect.x; x < boundingRect.x + boundingRect.width; x++) {
+                    const pixel = src.ucharPtr(y, x);
+                    if (pixel[0] < 50 && pixel[1] < 50 && pixel[2] < 50) continue; // 검은색 제외
+                    sumB += pixel[0];
+                    sumG += pixel[1];
+                    sumR += pixel[2];
+                    count++;
+                }
+            }
+
+            return {
+                r: Math.round(sumR / count),
+                g: Math.round(sumG / count),
+                b: Math.round(sumB / count)
+            };
+        }
+    </script>
+</body>
+</html>
