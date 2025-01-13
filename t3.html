@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>22222출기</title>
+    <title>22111111111기</title>
     <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         #canvas {
             display: block;
             margin-top: 10px;
@@ -13,17 +18,17 @@
             display: none; /* 비디오 요소 숨김 */
         }
         .color-box {
-            width: 30px;
-            height: 30px;
+            width: 50px;
+            height: 50px;
             display: inline-block;
-            margin: 2px;
+            margin: 5px;
             border: 1px solid #000;
         }
         #colors {
             display: flex;
             flex-wrap: wrap;
-            max-width: 200px; /* 색상 박스의 최대 너비 */
             margin-top: 10px;
+            justify-content: center;
         }
     </style>
 </head>
@@ -64,24 +69,7 @@
             function extractColors() {
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const data = imageData.data;
-                const borderPixels = [];
-                const boxSize = 30;
-                const boxesPerRow = 5; // 5개씩 나열
-                const boxesPerColumn = 4; // 4개씩 나열
-
-                // 30x30px 박스 색상 추출
-                for (let i = 0; i < boxesPerRow * boxesPerColumn; i++) {
-                    const boxX = (i % boxesPerRow) * (boxSize + 2); // 박스 간격 포함
-                    const boxY = Math.floor(i / boxesPerRow) * (boxSize + 2); // 박스 간격 포함
-                    const boxIndex = (boxY * canvas.width + boxX) * 4;
-
-                    const r = data[boxIndex];
-                    const g = data[boxIndex + 1];
-                    const b = data[boxIndex + 2];
-
-                    const rgbColor = `rgb(${r}, ${g}, ${b})`;
-                    displayColorBox(rgbColor, i);
-                }
+                const borderColors = [];
 
                 // 검은색 테두리 탐지 및 안쪽 색상 추출
                 for (let y = 0; y < canvas.height; y++) {
@@ -96,21 +84,13 @@
                             // 검은색 테두리 안쪽 색상 추출
                             const insideColor = getInsideColor(data, x, y, canvas.width);
                             if (insideColor) {
-                                borderPixels.push(insideColor);
+                                borderColors.push(insideColor);
                             }
                         }
                     }
                 }
                 // 색상 박스와 RGB 값 표시
-                displayColors(borderPixels);
-            }
-
-            // 박스에 색상 표시
-            function displayColorBox(color, index) {
-                const colorBox = document.createElement('div');
-                colorBox.className = 'color-box';
-                colorBox.style.backgroundColor = color;
-                colorsDiv.appendChild(colorBox);
+                displayColors(borderColors);
             }
 
             // 검은색 테두리 안쪽 색상 추출
@@ -121,6 +101,7 @@
 
             // 색상 표시 함수
             function displayColors(colors) {
+                colorsDiv.innerHTML = ''; // 기존 색상 초기화
                 const uniqueColors = [...new Set(colors)]; // 중복 색상 제거
                 uniqueColors.forEach(color => {
                     const colorBox = document.createElement('div');
