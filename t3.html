@@ -3,45 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>카메라 촬영 및 RGB 표시</title>
+    <title>RGB 값 추출기</title>
     <style>
         #canvas {
-            position: relative;
-            border: 1px solid black;
+            display: none; /* 캔버스는 화면에 보이지 않게 함 */
         }
         .rgb-value {
-            position: absolute;
             font-weight: bold;
+            margin-top: 5px;
             text-align: center;
-            margin-top: 5px; /* 상자와 텍스트 간격 조정 */
         }
         .color-box {
-            width: 10px; /* 색상 박스 크기 */
-            height: 10px; /* 색상 박스 크기 */
+            width: 20px;
+            height: 20px;
             display: inline-block;
-            margin-top: 5px; /* 색상 박스와 텍스트 간격 조정 */
+            margin-left: 5px;
         }
     </style>
 </head>
 <body>
-    <video id="video" width="320" height="240" controls muted autoplay loop playsinline></video>
+    <video id="video" controls muted autoplay loop playsinline></video>
     <button id="capture">촬영하기</button>
     <canvas id="canvas" width="320" height="240"></canvas>
+    <div id="rgb-container"></div>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
         const captureButton = document.getElementById('capture');
+        const rgbContainer = document.getElementById('rgb-container');
 
         // 카메라 스트림 시작
-navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
+        navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
-                video.play();
             })
             .catch(err => {
-                console.error("카메라 접근 오류: " + err);
+                console.error("카메라 접근 오류:", err);
             });
 
         captureButton.addEventListener('click', () => {
@@ -49,34 +48,33 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             // 정사각형 위치 설정
-            const positions = [
-                { x: 50, y: 50 },
-                { x: 85, y: 50 } // 두 번째 정사각형
-            ];
+            const pos = { x: 50, y: 50 }; // 정사각형 마스크 위치
 
-            positions.forEach(pos => {
-                // 정사각형 그리기
-                context.strokeStyle = 'red';
-                context.lineWidth = 2;
-                context.strokeRect(pos.x, pos.y, 30, 30);
+            // 정사각형 그리기
+            context.strokeStyle = 'red';
+            context.lineWidth = 2;
+            context.strokeRect(pos.x, pos.y, 30, 30);
 
-                // RGB 값 표시
-                const imageData = context.getImageData(pos.x, pos.y, 1, 1);
-                const [r, g, b] = imageData.data;
+            // RGB 값 추출
+            const imageData = context.getImageData(pos.x, pos.y, 30, 30);
+            const data = imageData.data;
 
-                // RGB 값 텍스트 표시
-                const rgbContainer = document.createElement('div');
-                rgbContainer.className = 'rgb-value';
-                rgbContainer.style.left = `${pos.x}px`;
-                rgbContainer.style.top = `${pos.y + 35}px`; // 정사각형 하단에 위치
+            // 평균 RGB 값 계산
+            let r = 0, g = 0, b = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                r += data[i];
+                g += data[i + 1];
+                b += data[i + 2];
+            }
+            r = Math.floor(r / (data.length / 4));
+            g = Math.floor(g / (data.length / 4));
+            b = Math.floor(b / (data.length / 4));
 
-                // RGB 값과 색상 상자 추가
-                rgbContainer.innerHTML = `
-                    RGB(${r}, ${g}, ${b})<br>
-                    <div class="color-box" style="background: rgb(${r}, ${g}, ${b});"></div>
-                `;
-                document.body.appendChild(rgbContainer);
-            });
+            // RGB 값과 색상 표시
+            rgbContainer.innerHTML = `
+                <div class="rgb-value">RGB(${r}, ${g}, ${b})</div>
+                <div class="color-box" style="background: rgb(${r}, ${g}, ${b});"></div>
+            `;
         });
     </script>
 </body>
