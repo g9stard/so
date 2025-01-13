@@ -70,7 +70,7 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
                 rgbContainer.style.left = `${pos.x}px`;
                 rgbContainer.style.top = `${pos.y + 35}px`; // 정사각형 하단에 위치
 
-                // 색상 상자와 RGB 값 텍스트 추가
+                // RGB 값과 색상 상자 추가
                 rgbContainer.innerHTML = `
                     RGB(${r}, ${g}, ${b})<br>
                     <div class="color-box" style="background: rgb(${r}, ${g}, ${b});"></div>
