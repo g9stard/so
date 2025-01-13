@@ -3,21 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>검22기</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title22222출기</title>
     <style>
         #canvas {
             display: block;
-            position: relative;
             margin-top: 10px;
         }
         video {
             display: none; /* 비디오 요소 숨김 */
         }
-        .color-label {
-            position: absolute;
-            color: white;
-            font-weight: bold;
+        .color-box {
+            width: 30px;
+            height: 30px;
+            display: inline-block;
+            margin: 2px;
+            border: 1px solid #000;
+        }
+        #colors {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 200px; /* 색상 박스의 최대 너비 */
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -25,12 +31,14 @@
     <video id="video" controls muted autoplay loop playsinline></video>
     <button id="capture">사진 촬영</button>
     <canvas id="canvas"></canvas>
+    <div id="colors"></div>
 
     <script>
-        $(document).ready(function() {
+        document.addEventListener("DOMContentLoaded", function() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
+            const colorsDiv = document.getElementById('colors');
 
             // 후면 카메라 접근
             navigator.mediaDevices.getUserMedia({
@@ -45,7 +53,7 @@
             });
 
             // 사진 촬영 버튼 클릭 이벤트
-            $('#capture').click(function() {
+            document.getElementById('capture').addEventListener('click', function() {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -56,15 +64,28 @@
             function extractColors() {
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const data = imageData.data;
+                const borderPixels = [];
+                const boxSize = 30;
+                const boxesPerRow = 5; // 5개씩 나열
+                const boxesPerColumn = 4; // 4개씩 나열
 
-                // 검은색 상자 위치 (예: (100, 100)에서 시작하여 100x100 크기)
-                const boxX = 100;
-                const boxY = 100;
-                const boxSize = 100;
+                // 30x30px 박스 색상 추출
+                for (let i = 0; i < boxesPerRow * boxesPerColumn; i++) {
+                    const boxX = (i % boxesPerRow) * (boxSize + 2); // 박스 간격 포함
+                    const boxY = Math.floor(i / boxesPerRow) * (boxSize + 2); // 박스 간격 포함
+                    const boxIndex = (boxY * canvas.width + boxX) * 4;
 
-                // 검은색 상자 안쪽 색상 추출
-                for (let y = boxY; y < boxY + boxSize; y++) {
-                    for (let x = boxX; x < boxX + boxSize; x++) {
+                    const r = data[boxIndex];
+                    const g = data[boxIndex + 1];
+                    const b = data[boxIndex + 2];
+
+                    const rgbColor = `rgb(${r}, ${g}, ${b})`;
+                    displayColorBox(rgbColor, i);
+                }
+
+                // 검은색 테두리 탐지 및 안쪽 색상 추출
+                for (let y = 0; y < canvas.height; y++) {
+                    for (let x = 0; x < canvas.width; x++) {
                         const index = (y * canvas.width + x) * 4;
                         const r = data[index];
                         const g = data[index + 1];
@@ -72,30 +93,45 @@
 
                         // 검은색 픽셀 조건
                         if (r < 50 && g < 50 && b < 50) {
-                            // 검은색 픽셀은 무시
-                            continue;
-                        } else {
-                            // 검은색 상자 안쪽 픽셀 색상 추출
-                            const rgbColor = `rgb(${r}, ${g}, ${b})`;
-                            displayColorLabel(rgbColor, x, y);
+                            // 검은색 테두리 안쪽 색상 추출
+                            const insideColor = getInsideColor(data, x, y, canvas.width);
+                            if (insideColor) {
+                                borderPixels.push(insideColor);
+                            }
                         }
                     }
                 }
+                // 색상 박스와 RGB 값 표시
+                displayColors(borderPixels);
             }
 
-            // 색상 레이블 표시 함수
-            function displayColorLabel(color, x, y) {
-                const label = $('<div></div>')
-                    .text(color)
-                    .css({
-                        position: 'absolute',
-                        left: x + 'px',
-                        top: y + 'px',
-                        color: 'white',
-                        fontWeight: 'bold',
-                        pointerEvents: 'none' // 클릭 이벤트 무시
-                    });
-                $('#canvas').after(label);
+            // 박스에 색상 표시
+            function displayColorBox(color, index) {
+                const colorBox = document.createElement('div');
+                colorBox.className = 'color-box';
+                colorBox.style.backgroundColor = color;
+                colorsDiv.appendChild(colorBox);
+            }
+
+            // 검은색 테두리 안쪽 색상 추출
+            function getInsideColor(data, x, y, width) {
+                const insideColor = `rgb(${data[((y * width + x) * 4)]}, ${data[((y * width + x) * 4) + 1]}, ${data[((y * width + x) * 4) + 2]})`;
+                return insideColor;
+            }
+
+            // 색상 표시 함수
+            function displayColors(colors) {
+                const uniqueColors = [...new Set(colors)]; // 중복 색상 제거
+                uniqueColors.forEach(color => {
+                    const colorBox = document.createElement('div');
+                    colorBox.className = 'color-box';
+                    colorBox.style.backgroundColor = color;
+                    colorsDiv.appendChild(colorBox);
+
+                    const rgbValue = document.createElement('div');
+                    rgbValue.textContent = color; // RGB 값 표시
+                    colorsDiv.appendChild(rgbValue);
+                });
             }
         });
     </script>
