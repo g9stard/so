@@ -51,13 +51,14 @@
             const colorsDiv = document.getElementById('colors');
 
             // 후면 카메라 접근
-            navigator.mediaDevices.getUserMedia({
-                video: { facingMode: { exact: "environment" } }
-            })
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
             .then(stream => {
                 video.srcObject = stream;
                 video.play();
             })
+            .catch(err => {
+                console.error("카메라 접근 오류: " + err);
+            });
             .catch(err => {
                 console.error("카메라 접근 오류:", err);
             });
