@@ -5,11 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>색상 추출 및 표시</title>
     <style>
-        canvas {
+        #video {
+            width: 300px;
+            height: 500px;
             display: block;
             margin: 0 auto;
-           height: 500px;
-           width: 300px;
+        }
+        #canvas {
+            width: 300px;
+            height: 500px;
+            display: block;
+            margin: 0 auto;
         }
         .color-label {
             position: absolute;
@@ -19,14 +25,14 @@
             border: 1px solid #ccc;
             padding: 2px;
             border-radius: 3px;
-            height: 40px;
+                        height: 40px;
             width: 40px;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <video id="video" width="300px" height="500px" controls muted autoplay loop playsinline></video>
+     <video id="video" controls muted autoplay loop playsinline></video>
     <button id="capture">촬영</button>
     <canvas id="canvas"></canvas>
     <script>
@@ -46,6 +52,11 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
             });
 
         captureButton.on('click', () => {
+            // 캔버스 크기 설정
+            canvas.width = 300;
+            canvas.height = 500;
+
+            // 비디오 프레임을 캔버스에 그리기
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             drawMasksAndExtractColors();
         });
