@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>표시</title>
+    <title>카메라 촬영 및 RGB 표시</title>
     <style>
         #canvas {
             position: relative;
@@ -60,13 +60,10 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
                 const imageData = context.getImageData(pos.x, pos.y, 1, 1);
                 const [r, g, b] = imageData.data;
 
-                // RGB 값 텍스트 위치
-                const rgbText = document.createElement('div');
-                rgbText.className = 'rgb-value';
-                rgbText.style.left = `${pos.x}px`;
-                rgbText.style.top = `${pos.y + 35}px`; // 정사각형 하단에 위치
-                rgbText.innerText = `RGB(${r}, ${g}, ${b})`;
-                document.body.appendChild(rgbText);
+                // RGB 값 텍스트 표시
+                context.fillStyle = 'red';
+                context.font = '12px Arial';
+                context.fillText(`RGB(${r}, ${g}, ${b})`, pos.x, pos.y + 45); // 정사각형 하단에 위치
             });
         });
     </script>
