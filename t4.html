@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>색상표 검출 및 RGB 표시</title>
+    <title>출 및 표시</title>
     <style>
         canvas {
             display: block;
             margin: 0 auto;
         }
+        .color-label {
+            position: absolute;
+            color: black;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid #ccc;
+            padding: 2px;
+            border-radius: 3px;
+        }
     </style>
-    <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <video id="video" controls muted autoplay loop playsinline></video>
@@ -20,7 +29,7 @@
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
-        const captureButton = document.getElementById('capture');
+        const captureButton = $('#capture');
 
 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
             .then(stream => {
@@ -31,72 +40,45 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
                 console.error("카메라 접근 오류: " + err);
             });
 
-        captureButton.addEventListener('click', () => {
+        captureButton.on('click', () => {
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            processImage();
+            drawMasksAndExtractColors();
         });
 
-        function processImage() {
-            const src = cv.imread(canvas);
-            const hsv = new cv.Mat();
-            cv.cvtColor(src, hsv, cv.COLOR_RGBA2HSV);
+        function drawMasksAndExtractColors() {
+            const maskSize = 40; // 마스크 크기
+            const spacing = 20; // 간격
+            const rows = 2; // 줄 수
+            const cols = 4; // 열 수
 
-            // 색상 범위 설정 (예시: 다양한 색상)
-            const colorRanges = [
-                { name: '빨강', lower: [0, 100, 100], upper: [10, 255, 255] },
-                { name: '초록', lower: [40, 100, 100], upper: [80, 255, 255] },
-                { name: '파랑', lower: [100, 100, 100], upper: [130, 255, 255] },
-                { name: '노랑', lower: [20, 100, 100], upper: [30, 255, 255] }
-            ];
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const x = col * (maskSize + spacing);
+                    const y = row * (maskSize + spacing);
 
-            colorRanges.forEach(color => {
-                const lowerBound = new cv.Mat(hsv.rows, hsv.cols, cv.CV_8UC3, color.lower);
-                const upperBound = new cv.Mat(hsv.rows, hsv.cols, cv.CV_8UC3, color.upper);
-                const mask = new cv.Mat();
-                cv.inRange(hsv, lowerBound, upperBound, mask);
+                    // 마스크 그리기
+                    context.strokeStyle = "rgba(255, 0, 0, 0.5)"; // 반투명 빨간색
+                    context.strokeRect(x, y, maskSize, maskSize);
 
-                // 외곽선 찾기
-                const contours = new cv.MatVector();
-                const hierarchy = new cv.Mat();
-                cv.findContours(mask, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+                    // 색상 추출
+                    const imageData = context.getImageData(x, y, maskSize, maskSize);
+                    const avgColor = getAverageColor(imageData.data, maskSize);
 
-                // 외곽선 그리기 및 색상 추출
-                for (let i = 0; i < contours.size(); i++) {
-                    const boundingRect = cv.boundingRect(contours.get(i));
-                    context.strokeStyle = color.name.toLowerCase(); // 외곽선 색상
-                    context.strokeRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
-
-                    // 평균 색상 추출
-                    const avgColor = extractAverageColor(src, boundingRect);
-                    context.fillStyle = "black"; // 텍스트 색상
-                    context.font = "16px Arial";
-                    context.fillText(`${color.name}: RGB(${avgColor.r}, ${avgColor.g}, ${avgColor.b})`, boundingRect.x, boundingRect.y - 5);
+                    // RGB 값과 색상 표시
+                    const colorLabel = `RGB(${avgColor.r}, ${avgColor.g}, ${avgColor.b})`;
+                    createColorLabel(colorLabel, x, y);
                 }
-
-                // 메모리 해제
-                lowerBound.delete();
-                upperBound.delete();
-                mask.delete();
-                contours.delete();
-                hierarchy.delete();
-            });
-
-            // 메모리 해제
-            src.delete();
-            hsv.delete();
+            }
         }
 
-        function extractAverageColor(src, boundingRect) {
+        function getAverageColor(data, size) {
             let sumR = 0, sumG = 0, sumB = 0, count = 0;
 
-            for (let y = boundingRect.y; y < boundingRect.y + boundingRect.height; y++) {
-                for (let x = boundingRect.x; x < boundingRect.x + boundingRect.width; x++) {
-                    const pixel = src.ucharPtr(y, x);
-                    sumB += pixel[0];
-                    sumG += pixel[1];
-                    sumR += pixel[2];
-                    count++;
-                }
+            for (let i = 0; i < data.length; i += 4) {
+                sumR += data[i];     // R
+                sumG += data[i + 1]; // G
+                sumB += data[i + 2]; // B
+                count++;
             }
 
             return {
@@ -104,6 +86,15 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
                 g: Math.round(sumG / count),
                 b: Math.round(sumB / count)
             };
+        }
+
+        function createColorLabel(color, x, y) {
+            const label = $('<div class="color-label"></div>').text(color);
+            label.css({
+                left: x + 'px',
+                top: (y - 20) + 'px' // 마스크 위쪽에 위치
+            });
+            $('body').append(label);
         }
     </script>
 </body>
