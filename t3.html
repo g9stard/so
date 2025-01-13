@@ -24,8 +24,6 @@
             border: 2px dashed red; /* 가이드 정사각형 스타일 */
             width: 30px;
             height: 30px;
-            left: 30px; /* x: 30px 위치 */
-            top: 50px; /* top: 50px 위치 */
         }
     </style>
 </head>
@@ -34,7 +32,6 @@
     <button id="capture">촬영하기</button>
     <canvas id="canvas" width="320" height="240"></canvas>
     <div id="rgb-container"></div>
-    <div class="guide-square"></div> <!-- 가이드 정사각형 -->
 
     <script>
         const video = document.getElementById('video');
@@ -53,38 +50,56 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
                 console.error("카메라 접근 오류: " + err);
             });
 
+        // 가이드 정사각형 위치 설정
+        const squares = [];
+        const startX = 30; // 시작 X 위치
+        const startY = 50; // 시작 Y 위치
+        const gap = 10; // 간격
+        const squareSize = 30; // 정사각형 크기
+
+        for (let i = 0; i < 5; i++) {
+            const posX = startX + (squareSize + gap) * i;
+            const posY = startY;
+            squares.push({ x: posX, y: posY });
+            // 가이드 정사각형 그리기
+            const guideSquare = document.createElement('div');
+            guideSquare.className = 'guide-square';
+            guideSquare.style.left = `${posX}px`;
+            guideSquare.style.top = `${posY}px`;
+            document.body.appendChild(guideSquare);
+        }
+
         captureButton.addEventListener('click', () => {
             // 비디오에서 캡처
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // 정사각형 위치 설정
-            const pos = { x: 30, y: 50 }; // 가이드 정사각형 위치
+            squares.forEach(pos => {
+                // RGB 값 추출
+                const imageData = context.getImageData(pos.x, pos.y, squareSize, squareSize);
+                const data = imageData.data;
 
-            // RGB 값 추출
-            const imageData = context.getImageData(pos.x, pos.y, 30, 30);
-            const data = imageData.data;
+                // 평균 RGB 값 계산
+                let r = 0, g = 0, b = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                    r += data[i];
+                    g += data[i + 1];
+                    b += data[i + 2];
+                }
+                r = Math.floor(r / (data.length / 4));
+                g = Math.floor(g / (data.length / 4));
+                b = Math.floor(b / (data.length / 4));
 
-            // 평균 RGB 값 계산
-            let r = 0, g = 0, b = 0;
-            for (let i = 0; i < data.length; i += 4) {
-                r += data[i];
-                g += data[i + 1];
-                b += data[i + 2];
-            }
-            r = Math.floor(r / (data.length / 4));
-            g = Math.floor(g / (data.length / 4));
-            b = Math.floor(b / (data.length / 4));
+                // RGB 값과 색상 표시
+                rgbContainer.innerHTML += `
+                    <div class="rgb-value">(${pos.x}, ${pos.y}) - RGB(${r}, ${g}, ${b})</div>
+                    <div class="color-box" style="background: rgb(${r}, ${g}, ${b});"></div>
+                `;
 
-            // RGB 값과 색상 표시
-            rgbContainer.innerHTML = `
-                <div class="rgb-value">RGB(${r}, ${g}, ${b})</div>
-                <div class="color-box" style="background: rgb(${r}, ${g}, ${b});"></div>
-            `;
-
-            // 최종 이미지 위에 정사각형 그리기
-            context.strokeStyle = 'red';
-            context.lineWidth = 2;
-            context.strokeRect(pos.x, pos.y, 30, 30); // 최종 촬영 이미지 위에 정사각형 그리기
+                // 최종 이미지 위에 정사각형 그리기
+                context.strokeStyle = 'red';
+                context.lineWidth = 2;
+                context.strokeRect(pos.x, pos.y, squareSize, squareSize); // 최종 촬영 이미지 위에 정사각형 그리기
+            });
         });
     </script>
 </body>
