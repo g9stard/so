@@ -19,6 +19,14 @@
             display: inline-block;
             margin-left: 5px;
         }
+        .guide-square {
+            position: absolute;
+            border: 2px dashed red; /* 가이드 정사각형 스타일 */
+            width: 30px;
+            height: 30px;
+            left: 30px; /* x: 30px 위치 */
+            top: 50px; /* top: 50px 위치 */
+        }
     </style>
 </head>
 <body>
@@ -26,6 +34,7 @@
     <button id="capture">촬영하기</button>
     <canvas id="canvas" width="320" height="240"></canvas>
     <div id="rgb-container"></div>
+    <div class="guide-square"></div> <!-- 가이드 정사각형 -->
 
     <script>
         const video = document.getElementById('video');
@@ -48,12 +57,7 @@
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             // 정사각형 위치 설정
-            const pos = { x: 50, y: 50 }; // 정사각형 마스크 위치
-
-            // 정사각형 그리기
-            context.strokeStyle = 'red';
-            context.lineWidth = 2;
-            context.strokeRect(pos.x, pos.y, 30, 30);
+            const pos = { x: 30, y: 50 }; // 가이드 정사각형 위치
 
             // RGB 값 추출
             const imageData = context.getImageData(pos.x, pos.y, 30, 30);
@@ -75,6 +79,11 @@
                 <div class="rgb-value">RGB(${r}, ${g}, ${b})</div>
                 <div class="color-box" style="background: rgb(${r}, ${g}, ${b});"></div>
             `;
+
+            // 최종 이미지 위에 정사각형 그리기
+            context.strokeStyle = 'red';
+            context.lineWidth = 2;
+            context.strokeRect(pos.x, pos.y, 30, 30); // 최종 촬영 이미지 위에 정사각형 그리기
         });
     </script>
 </body>
