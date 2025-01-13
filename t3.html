@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>크 기법</title>
+    <title>RGB 색상 추출기 - 마스크 기법</title>
     <style>
         body {
             display: flex;
@@ -13,9 +13,14 @@
         #canvas {
             display: block;
             margin-top: 10px;
+            position: relative;
         }
         video {
             display: none; /* 비디오 요소 숨김 */
+        }
+        .mask {
+            position: absolute;
+            border: 2px solid red; /* 마스크 테두리 색상 */
         }
         .color-box {
             width: 50px;
@@ -71,8 +76,8 @@
                 const data = imageData.data;
                 const maskSize = 20; // 마스크 크기
                 const masks = [
-                    { x: 50, y: 50 }, // 첫 번째 마스크 위치
-                    { x: 100, y: 100 } // 두 번째 마스크 위치
+                    { x: 20, y: 30 }, // 첫 번째 마스크 위치
+                    { x: 50, y: 30 }  // 두 번째 마스크 위치
                 ];
                 const extractedColors = [];
 
@@ -122,6 +127,27 @@
                     colorsDiv.appendChild(rgbValue);
                 });
             }
+
+            // 마스크 표시
+            function drawMasks() {
+                const masks = [
+                    { x: 20, y: 30 }, // 첫 번째 마스크 위치
+                    { x: 50, y: 30 }  // 두 번째 마스크 위치
+                ];
+
+                masks.forEach(mask => {
+                    const maskDiv = document.createElement('div');
+                    maskDiv.className = 'mask';
+                    maskDiv.style.left = `${mask.x}px`;
+                    maskDiv.style.top = `${mask.y}px`;
+                    maskDiv.style.width = '20px';
+                    maskDiv.style.height = '20px';
+                    document.body.appendChild(maskDiv);
+                });
+            }
+
+            // 촬영 후 마스크 그리기
+            document.getElementById('capture').addEventListener('click', drawMasks);
         });
     </script>
 </body>
