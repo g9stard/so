@@ -11,16 +11,19 @@
         }
         .rgb-value {
             position: absolute;
-            color: red;
             font-weight: bold;
-            background: rgba(255, 255, 255, 0.7); /* 배경을 흰색으로 설정하여 가독성 향상 */
-            padding: 2px;
-            border-radius: 3px;
+            text-align: center;
+        }
+        .color-box {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            margin-right: 5px;
         }
     </style>
 </head>
 <body>
-    <video id="video" controls muted autoplay loop playsinline></video>
+    <video id="video" width="320" height="240" autoplay></video>
     <button id="capture">촬영하기</button>
     <canvas id="canvas" width="320" height="240"></canvas>
 
@@ -30,7 +33,6 @@
         const context = canvas.getContext('2d');
         const captureButton = document.getElementById('capture');
 
-        // 카메라 스트림 시작
 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
             .then(stream => {
                 video.srcObject = stream;
@@ -61,9 +63,12 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
                 const [r, g, b] = imageData.data;
 
                 // RGB 값 텍스트 표시
-                context.fillStyle = 'red';
-                context.font = '10px Arial';
-                context.fillText(`RGB(${r}, ${g}, ${b})`, pos.x+10, pos.y + 50); // 정사각형 하단에 위치
+                const rgbContainer = document.createElement('div');
+                rgbContainer.className = 'rgb-value';
+                rgbContainer.style.left = `${pos.x}px`;
+                rgbContainer.style.top = `${pos.y + 35}px`; // 정사각형 하단에 위치
+                rgbContainer.innerHTML = `<div class="color-box" style="background: rgb(${r}, ${g}, ${b});"></div>RGB(${r}, ${g}, ${b})`;
+                document.body.appendChild(rgbContainer);
             });
         });
     </script>
