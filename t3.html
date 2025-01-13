@@ -44,12 +44,13 @@
         const rgbContainer = document.getElementById('rgb-container');
 
         // 카메라 스트림 시작
-        navigator.mediaDevices.getUserMedia({ video: true })
+navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
             .then(stream => {
                 video.srcObject = stream;
+                video.play();
             })
             .catch(err => {
-                console.error("카메라 접근 오류:", err);
+                console.error("카메라 접근 오류: " + err);
             });
 
         captureButton.addEventListener('click', () => {
