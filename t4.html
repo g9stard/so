@@ -11,10 +11,9 @@
         }
     </style>
     <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
-  
 </head>
 <body>
-    <video id="video" autoplay></video>
+    <video id="video" controls muted autoplay loop playsinline></video>
     <button id="capture">촬영</button>
     <canvas id="canvas"></canvas>
     <script>
@@ -24,9 +23,13 @@
         const captureButton = document.getElementById('capture');
 
         // 후면 카메라 접근
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
             .then(stream => {
                 video.srcObject = stream;
+                video.play();
+            })
+            .catch(err => {
+                console.error("카메라 접근 오류: " + err);
             });
 
         captureButton.addEventListener('click', () => {
@@ -53,8 +56,15 @@
             for (let i = 0; i < contours.size(); i++) {
                 const color = extractAverageColor(src, contours.get(i));
                 const boundingRect = cv.boundingRect(contours.get(i));
+                
+                // 경계 사각형 그리기
                 context.strokeStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
                 context.strokeRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
+
+                // RGB 값 표시
+                context.fillStyle = "black"; // 텍스트 색상
+                context.font = "16px Arial";
+                context.fillText(`RGB(${color.r}, ${color.g}, ${color.b})`, boundingRect.x, boundingRect.y - 5);
             }
 
             // 메모리 해제
