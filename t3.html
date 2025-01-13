@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>후면 카메라 촬영</title>
+    <title>22면 카메라 촬영</title>
     <style>
         #camera-container {
             position: relative;
@@ -24,14 +24,11 @@
             height: 20px;
             border: 1px solid rgba(255, 0, 0, 0.5);
             position: absolute;
-        }
-        .color-label {
-            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-size: 12px;
             color: white;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 2px;
-            border-radius: 3px;
         }
     </style>
 </head>
@@ -45,11 +42,6 @@
             <div class="square" style="top: 0; left: 60px;" data-x="70" data-y="10"></div>
             <div class="square" style="top: 0; left: 90px;" data-x="100" data-y="10"></div>
             <div class="square" style="top: 0; left: 120px;" data-x="130" data-y="10"></div>
-            <div class="color-label" id="color1" style="top: 30px; left: 10px;"></div>
-            <div class="color-label" id="color2" style="top: 30px; left: 40px;"></div>
-            <div class="color-label" id="color3" style="top: 30px; left: 70px;"></div>
-            <div class="color-label" id="color4" style="top: 30px; left: 100px;"></div>
-            <div class="color-label" id="color5" style="top: 30px; left: 130px;"></div>
         </div>
     </div>
     <button id="capture">촬영하기</button>
@@ -82,13 +74,12 @@
 
             // RGB 색상 추출
             const squares = document.querySelectorAll('.square');
-            squares.forEach((square, index) => {
+            squares.forEach((square) => {
                 const x = parseInt(square.dataset.x);
                 const y = parseInt(square.dataset.y);
                 const rgb = getPixelColor(context, x, y);
-                const colorLabel = document.getElementById(`color${index + 1}`);
-                colorLabel.textContent = `RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`;
-                colorLabel.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+                square.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+                square.textContent = `RGB: ${rgb.r}, ${rgb.g}, ${rgb.b}`;
             });
         });
 
