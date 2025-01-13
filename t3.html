@@ -30,7 +30,7 @@
             position: absolute;
             width: 30px;
             height: 30px;
-            border: 2px solid red;
+            border: 2px dashed red;
         }
     </style>
 </head>
@@ -61,6 +61,24 @@
                 console.error("카메라 접근 오류:", err);
             });
 
+        // 30x30px 박스의 위치 생성
+        const boxPositions = Array.from({ length: 20 }, () => ({
+            x: Math.floor(Math.random() * (640 - 30)), // 비디오 최대 폭에 맞춤
+            y: Math.floor(Math.random() * (480 - 30))  // 비디오 최대 높이에 맞춤
+        }));
+
+        // 가이드 박스 표시
+        function drawGuides() {
+            guidesDiv.innerHTML = '';
+            boxPositions.forEach(pos => {
+                const guideBox = document.createElement('div');
+                guideBox.className = 'guide-box';
+                guideBox.style.left = `${pos.x}px`;
+                guideBox.style.top = `${pos.y}px`;
+                guidesDiv.appendChild(guideBox);
+            });
+        }
+
         // 사진 촬영 버튼 클릭 이벤트
         document.getElementById('capture').addEventListener('click', () => {
             canvas.width = video.videoWidth;
@@ -69,7 +87,6 @@
             capturedImage.src = canvas.toDataURL();
             capturedImage.style.display = 'block';
             extractColors();
-            drawGuides();
         });
 
         // 색상 추출 함수
@@ -78,16 +95,13 @@
             const data = imageData.data;
             const colors = [];
 
-            for (let i = 0; i < 20; i++) {
-                const x = Math.floor(Math.random() * (canvas.width - 30));
-                const y = Math.floor(Math.random() * (canvas.height - 30));
-                const index = (y * canvas.width + x) * 4;
+            boxPositions.forEach(pos => {
+                const index = (pos.y * canvas.width + pos.x) * 4;
                 const r = data[index];
                 const g = data[index + 1];
                 const b = data[index + 2];
-
                 colors.push(`rgb(${r}, ${g}, ${b})`);
-            }
+            });
 
             displayColors(colors);
         }
@@ -103,19 +117,8 @@
             });
         }
 
-        // 가이드 박스 그리기
-        function drawGuides() {
-            guidesDiv.innerHTML = '';
-            for (let i = 0; i < 20; i++) {
-                const guideBox = document.createElement('div');
-                guideBox.className = 'guide-box';
-                const x = Math.floor(Math.random() * (canvas.width - 30));
-                const y = Math.floor(Math.random() * (canvas.height - 30));
-                guideBox.style.left = `${x}px`;
-                guideBox.style.top = `${y}px`;
-                guidesDiv.appendChild(guideBox);
-            }
-        }
+        // 초기 가이드 박스 그리기
+        drawGuides();
     </script>
 </body>
 </html>
