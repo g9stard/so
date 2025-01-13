@@ -13,6 +13,7 @@
             position: absolute;
             font-weight: bold;
             text-align: center;
+            margin-top: 5px; /* 상자와 텍스트 간격 조정 */
         }
         .color-box {
             width: 20px;
@@ -23,7 +24,7 @@
     </style>
 </head>
 <body>
-    <video id="video" width="320" height="240" controls muted autoplay loop playsinline></video>
+    <video id="video" width="320" height="240" autoplay></video>
     <button id="capture">촬영하기</button>
     <canvas id="canvas" width="320" height="240"></canvas>
 
@@ -33,6 +34,7 @@
         const context = canvas.getContext('2d');
         const captureButton = document.getElementById('capture');
 
+        // 카메라 스트림 시작
 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
             .then(stream => {
                 video.srcObject = stream;
@@ -66,8 +68,13 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audi
                 const rgbContainer = document.createElement('div');
                 rgbContainer.className = 'rgb-value';
                 rgbContainer.style.left = `${pos.x}px`;
-                rgbContainer.style.top = `${pos.y + 35}px`; // 정사각형 하단에 위치
-                rgbContainer.innerHTML = `<div class="color-box" style="background: rgb(${r}, ${g}, ${b});"></div>RGB(${r}, ${g}, ${b})`;
+                rgbContainer.style.top = `${pos.y + 40}px`; // 정사각형 하단에 위치
+
+                // 색상 상자와 RGB 값 텍스트 추가
+                rgbContainer.innerHTML = `
+                    <div class="color-box" style="background: rgb(${r}, ${g}, ${b});"></div>
+                    RGB(${r}, ${g}, ${b})
+                `;
                 document.body.appendChild(rgbContainer);
             });
         });
