@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>후면 카메라 검은색 테두리 추적기</title>
+    <title>검은색 테두리 안쪽 색상 추출기</title>
     <style>
         #canvas {
             display: block;
@@ -11,16 +11,30 @@
         video {
             display: none; /* 비디오 요소 숨김 */
         }
+        .color-box {
+            width: 30px;
+            height: 30px;
+            display: inline-block;
+            margin: 2px;
+            border: 1px solid #000;
+        }
+        #colors {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 200px; /* 색상 박스의 최대 너비 */
+        }
     </style>
 </head>
 <body>
     <video id="video" controls muted autoplay loop playsinline></video>
     <canvas id="canvas"></canvas>
+    <div id="colors"></div>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const colorsDiv = document.getElementById('colors');
 
         // 후면 카메라 접근
         navigator.mediaDevices.getUserMedia({
@@ -44,6 +58,7 @@
             const data = imageData.data;
 
             // 검은색 테두리 탐지
+            const borderPixels = [];
             for (let y = 0; y < canvas.height; y++) {
                 for (let x = 0; x < canvas.width; x++) {
                     const index = (y * canvas.width + x) * 4;
@@ -53,17 +68,42 @@
 
                     // 검은색 픽셀 조건
                     if (r < 50 && g < 50 && b < 50) {
-                        // 검은색 픽셀을 빨간색으로 변경
+                        // 테두리 픽셀을 빨간색으로 변경
                         data[index] = 255; // R
                         data[index + 1] = 0; // G
                         data[index + 2] = 0; // B
+                    } else {
+                        // 검은색 테두리 안쪽 픽셀 색상 추출
+                        if (data[index] !== 255 || data[index + 1] !== 0 || data[index + 2] !== 0) {
+                            borderPixels.push(`rgb(${r}, ${g}, ${b})`);
+                        }
                     }
                 }
             }
 
             // 수정된 픽셀 데이터를 캔버스에 다시 그리기
             ctx.putImageData(imageData, 0, 0);
+
+            // 색상 박스와 RGB 값 표시
+            displayColors(borderPixels);
             requestAnimationFrame(detectBlackBorders); // 계속해서 추적
+        }
+
+        function displayColors(colors) {
+            colorsDiv.innerHTML = '';
+            const uniqueColors = [...new Set(colors)]; // 중복 색상 제거
+
+            uniqueColors.forEach(color => {
+                const colorBox = document.createElement('div');
+                colorBox.className = 'color-box';
+                colorBox.style.backgroundColor = color;
+
+                const rgbValue = document.createElement('div');
+                rgbValue.textContent = color; // RGB 값 표시
+
+                colorsDiv.appendChild(colorBox);
+                colorsDiv.appendChild(rgbValue);
+            });
         }
     </script>
 </body>
