@@ -3,149 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R22크 기법</title>
+    <title>카메라 촬영 및 RGB 표시</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
         #canvas {
-            display: block;
-            margin-top: 10px;
             position: relative;
+            border: 1px solid black;
         }
-        video {
-            display: block; /* 비디오 요소 숨김 */
-        }
-        .mask {
+        .square {
             position: absolute;
-            border: 2px solid red; /* 마스크 테두리 색상 */
+            width: 30px;
+            height: 30px;
+            border: 2px solid red;
         }
-        .color-box {
-            width: 50px;
-            height: 50px;
-            display: inline-block;
-            margin: 5px;
-            border: 1px solid #000;
-        }
-        #colors {
-            display: flex;
-            flex-wrap: wrap;
-            margin-top: 10px;
-            justify-content: center;
+        .rgb-value {
+            position: absolute;
+            color: white;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <video id="video" controls muted autoplay loop playsinline></video>
-    <button id="capture">사진 촬영</button>
-    <canvas id="canvas"></canvas>
-    <div id="colors"></div>
+    <video id="video" width="320" height="240" autoplay></video>
+    <button id="capture">촬영하기</button>
+    <canvas id="canvas" width="320" height="240"></canvas>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            const colorsDiv = document.getElementById('colors');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const captureButton = document.getElementById('capture');
 
-            // 후면 카메라 접근
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true })
+        // 카메라 스트림 시작
+        navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
-                video.play();
             })
             .catch(err => {
                 console.error("카메라 접근 오류:", err);
             });
 
-            // 사진 촬영 버튼 클릭 이벤트
-            document.getElementById('capture').addEventListener('click', function() {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                extractColors();
+        captureButton.addEventListener('click', () => {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // 정사각형 위치 설정
+            const positions = [
+                { x: 50, y: 50 },
+                { x: 50 + 35, y: 50 } // 두 번째 정사각형
+            ];
+
+            positions.forEach(pos => {
+                // 정사각형 그리기
+                context.strokeStyle = 'red';
+                context.strokeRect(pos.x, pos.y, 30, 30);
+
+                // RGB 값 표시
+                const imageData = context.getImageData(pos.x, pos.y, 1, 1);
+                const [r, g, b] = imageData.data;
+
+                // RGB 값 텍스트 위치
+                const rgbText = document.createElement('div');
+                rgbText.className = 'rgb-value';
+                rgbText.style.left = `${pos.x}px`;
+                rgbText.style.top = `${pos.y}px`;
+                rgbText.innerText = `RGB(${r}, ${g}, ${b})`;
+                document.body.appendChild(rgbText);
             });
-
-            // 색상 추출 함수
-            function extractColors() {
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                const maskSize = 20; // 마스크 크기
-                const masks = [
-                    { x: 20, y: 50 }, // 첫 번째 마스크 위치
-                    { x: 50, y: 50 }  // 두 번째 마스크 위치
-                ];
-                const extractedColors = [];
-
-                masks.forEach(mask => {
-                    const maskColor = getAverageColor(data, mask.x, mask.y, maskSize);
-                    if (maskColor) {
-                        extractedColors.push(maskColor);
-                    }
-                });
-
-                // 색상 박스와 RGB 값 표시
-                displayColors(extractedColors);
-            }
-
-            // 특정 영역의 평균 색상 추출
-            function getAverageColor(data, startX, startY, size) {
-                let r = 0, g = 0, b = 0, count = 0;
-
-                for (let y = startY; y < startY + size; y++) {
-                    for (let x = startX; x < startX + size; x++) {
-                        const index = (y * canvas.width + x) * 4;
-                        r += data[index];
-                        g += data[index + 1];
-                        b += data[index + 2];
-                        count++;
-                    }
-                }
-
-                // 평균 색상 계산
-                r = Math.floor(r / count);
-                g = Math.floor(g / count);
-                b = Math.floor(b / count);
-                return `rgb(${r}, ${g}, ${b})`;
-            }
-
-            // 색상 표시 함수
-            function displayColors(colors) {
-                colorsDiv.innerHTML = ''; // 기존 색상 초기화
-                colors.forEach(color => {
-                    const colorBox = document.createElement('div');
-                    colorBox.className = 'color-box';
-                    colorBox.style.backgroundColor = color;
-                    colorsDiv.appendChild(colorBox);
-
-                    const rgbValue = document.createElement('div');
-                    rgbValue.textContent = color; // RGB 값 표시
-                    colorsDiv.appendChild(rgbValue);
-                });
-            }
-
-            // 마스크 표시
-            function drawMasks() {
-                const masks = [
-                    { x: 20, y: 50 }, // 첫 번째 마스크 위치
-                    { x: 50, y: 50 }  // 두 번째 마스크 위치
-                ];
-
-                masks.forEach(mask => {
-                    const maskDiv = document.createElement('div');
-                    maskDiv.className = 'mask';
-                    maskDiv.style.left = `${mask.x}px`;
-                    maskDiv.style.top = `${mask.y}px`;
-                    maskDiv.style.width = '20px';
-                    maskDiv.style.height = '20px';
-                    document.body.appendChild(maskDiv);
-                });
-            }
-
-            // 촬영 후 마스크 그리기
-            document.getElementById('capture').addEventListener('click', drawMasks);
         });
     </script>
 </body>
