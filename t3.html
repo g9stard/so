@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2 추출기</title>
+    <title>5555555출기</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         #canvas {
@@ -64,9 +64,7 @@
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const data = imageData.data;
                 const borderPixels = [];
-
-                let insideBox = false; // 박스 내부 여부 플래그
-                const borderWidth = 5; // 테두리 두께
+                const borderWidth = 5; // 검은색 테두리 두께
 
                 // 검은색 테두리 탐지 및 안쪽 색상 추출
                 for (let y = 0; y < canvas.height; y++) {
@@ -82,13 +80,11 @@
                             data[index] = 255;
                             data[index + 1] = 0;
                             data[index + 2] = 0;
-                            insideBox = true; // 박스 내부로 설정
-                        } else if (insideBox) {
-                            // 테두리 안쪽 픽셀 색상 추출
-                            borderPixels.push(`rgb(${r}, ${g}, ${b})`);
                         } else {
-                            // 박스 바깥쪽 픽셀일 경우, 박스 내부 플래그 초기화
-                            insideBox = false;
+                            // 테두리 안쪽 픽셀 색상 추출
+                            if (data[index] !== 255 || data[index + 1] !== 0 || data[index + 2] !== 0) {
+                                borderPixels.push(`rgb(${r}, ${g}, ${b})`);
+                            }
                         }
                     }
                 }
